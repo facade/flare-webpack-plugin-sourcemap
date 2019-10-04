@@ -8,5 +8,8 @@
     },
     "devDependencies": {
         "@types/webpack": "^4.39.2"
+    },
+    "dependencies": {
+        "axios": "^0.19.0"
     }
 }
