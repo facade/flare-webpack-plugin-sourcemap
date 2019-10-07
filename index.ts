@@ -1,10 +1,12 @@
 import webpack = require('webpack');
 import axios, { AxiosError } from 'axios';
+const zlib = require('zlib');
 
 type PluginOptions = {
     key: string;
     apiEndpoint: string;
     runInDevelopment: boolean;
+    failBuildOnError: boolean;
 };
 
 type Sourcemap = {
@@ -16,22 +18,24 @@ function flareLog(message: string, isError: boolean = false) {
     const formattedMessage = 'flare-webpack-plugin-sourcemap: ' + message;
 
     if (isError) {
-        console.error(formattedMessage);
+        console.error('\n' + formattedMessage + '\n');
         return;
     }
 
-    console.log(formattedMessage);
+    console.log('\n' + formattedMessage + '\n');
 }
 
 class FlareWebpackPluginSourcemap {
     key: PluginOptions['key'];
     apiEndpoint: PluginOptions['apiEndpoint'];
     runInDevelopment: PluginOptions['runInDevelopment'];
+    failBuildOnError: PluginOptions['failBuildOnError'];
 
-    constructor({ key, apiEndpoint, runInDevelopment }: PluginOptions) {
+    constructor({ key, apiEndpoint, runInDevelopment, failBuildOnError }: PluginOptions) {
         this.key = key;
         this.apiEndpoint = apiEndpoint || 'https://flareapp.io/api/sourcemaps';
         this.runInDevelopment = runInDevelopment || false;
+        this.failBuildOnError = failBuildOnError || false;
     }
 
     apply(compiler: webpack.Compiler) {
@@ -40,17 +44,20 @@ class FlareWebpackPluginSourcemap {
         }
 
         compiler.hooks.afterEmit.tapPromise('FlareWebpackPluginSourcemap', compilation => {
-            flareLog('\nUploading sourcemaps to Flare');
+            flareLog('Uploading sourcemaps to Flare');
 
             return this.sendSourcemaps(compilation)
                 .then(() => {
                     flareLog('Successfully uploaded sourcemaps to Flare.');
                 })
                 .catch(() => {
-                    flareLog(
-                        `Something went wrong while uploading sourcemaps to Flare. Errors may have been outputted above.`,
-                        true
-                    );
+                    const errorMessage = `\n\n---\nSomething went wrong while uploading sourcemaps to Flare.\nErrors may have been outputted above.\n---\n`;
+
+                    if (this.failBuildOnError) {
+                        throw new Error(errorMessage);
+                    }
+
+                    flareLog(errorMessage, true);
                 });
         });
     }
@@ -70,20 +77,23 @@ class FlareWebpackPluginSourcemap {
     }
 
     sendSourcemaps(compilation: webpack.compilation.Compilation): Promise<void> {
-        const sourcemaps = this.getSourcemaps(compilation);
+        return new Promise((resolve, reject) => {
+            const sourcemaps = this.getSourcemaps(compilation);
 
-        if (!sourcemaps.length) {
-            flareLog('No sourcemap files were found. Make sure sourcemaps are being generated!', true);
+            if (!sourcemaps.length) {
+                flareLog('No sourcemap files were found. Make sure sourcemaps are being generated!', true);
 
-            return Promise.reject();
-        }
+                return reject();
+            }
 
-        return this.uploadSourcemaps(sourcemaps)
-            .then(() => Promise.resolve())
-            .catch(err => {
-                flareLog(err, true);
-                throw new Error();
-            });
+            Promise.all(sourcemaps.map(sourcemap => this.uploadSourcemap(sourcemap)))
+                .then(() => resolve())
+                .catch(err => {
+                    flareLog(err, true);
+
+                    return reject();
+                });
+        });
     }
 
     getSourcemaps(compilation: webpack.compilation.Compilation): Array<Sourcemap> {
@@ -107,23 +117,31 @@ class FlareWebpackPluginSourcemap {
             );
     }
 
-    uploadSourcemaps(sourcemaps: Array<Sourcemap>) {
-        return Promise.all(
-            sourcemaps.map(sourcemap =>
+    uploadSourcemap(sourcemap: Sourcemap): Promise<void> {
+        return new Promise((resolve, reject) => {
+            zlib.deflate(sourcemap.content, (error, buffer) => {
+                if (error) {
+                    console.error('Something went wrong while compressing the sourcemap content:');
+                    reject(error);
+                }
+
+                const gzippedSourcemap = buffer.toString();
+
                 axios
                     .post(this.apiEndpoint, {
                         key: this.key,
                         version_id: 'test_version',
                         relative_filename: sourcemap.filename,
-                        sourcemap: sourcemap.content, // TODO: gzip the string (https://www.npmjs.com/package/node-gzip)
+                        sourcemap: gzippedSourcemap,
                     })
+                    .then(() => resolve())
                     .catch((error: AxiosError) => {
                         flareLog(`${error.response.status}: ${error.response.data.message}`, true);
 
-                        throw error;
-                    })
-            )
-        );
+                        return reject(error);
+                    });
+            });
+        });
     }
 }
 
