@@ -3,21 +3,26 @@ exports.__esModule = true;
 var zlib = require("zlib");
 var axios_1 = require("axios");
 var util_1 = require("./util");
-var gitInfo = util_1.getGitInfo();
-console.log(gitInfo);
 var FlareWebpackPluginSourcemap = /** @class */ (function () {
     function FlareWebpackPluginSourcemap(_a) {
-        var key = _a.key, apiEndpoint = _a.apiEndpoint, runInDevelopment = _a.runInDevelopment, failBuildOnError = _a.failBuildOnError;
+        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.failBuildOnError, failBuildOnError = _d === void 0 ? true : _d, _e = _a.versionId, versionId = _e === void 0 ? '' : _e;
         this.key = key;
-        this.apiEndpoint = apiEndpoint || 'https://flareapp.io/api/sourcemaps';
-        this.runInDevelopment = runInDevelopment || false;
-        this.failBuildOnError = failBuildOnError || false; // set default to true
+        this.apiEndpoint = apiEndpoint;
+        this.runInDevelopment = runInDevelopment;
+        this.failBuildOnError = failBuildOnError;
+        this.versionId = versionId;
     }
     FlareWebpackPluginSourcemap.prototype.apply = function (compiler) {
         var _this = this;
         if (!this.verifyOptions(compiler)) {
             return;
         }
+        compiler.hooks.compilation.tap('', function (compilation) {
+            var gitInfo = util_1.getGitInfo();
+            // this.versionId
+            // TODO: set git info & versionId in ENV variables (environment might be the incorrect hook, maybe beforeCompile, idk.)
+            // https://github.com/webpack/webpack/blob/master/lib/DefinePlugin.js?source=cc
+        });
         compiler.hooks.afterEmit.tapPromise('FlareWebpackPluginSourcemap', function (compilation) {
             util_1.flareLog('Uploading sourcemaps to Flare');
             return _this.sendSourcemaps(compilation)

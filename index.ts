@@ -5,9 +5,10 @@ import { getGitInfo, flareLog } from './util';
 
 type PluginOptions = {
     key: string;
-    apiEndpoint: string;
+    apiEndpoint?: string;
     runInDevelopment: boolean;
     failBuildOnError: boolean;
+    versionId?: string;
 };
 
 type Sourcemap = {
@@ -15,26 +16,39 @@ type Sourcemap = {
     content: string;
 };
 
-const gitInfo = getGitInfo();
-console.log(gitInfo);
-
 class FlareWebpackPluginSourcemap {
     key: PluginOptions['key'];
     apiEndpoint: PluginOptions['apiEndpoint'];
     runInDevelopment: PluginOptions['runInDevelopment'];
     failBuildOnError: PluginOptions['failBuildOnError'];
+    versionId: PluginOptions['versionId'];
 
-    constructor({ key, apiEndpoint, runInDevelopment, failBuildOnError }: PluginOptions) {
+    constructor({
+        key,
+        apiEndpoint = 'https://flareapp.io/api/sourcemaps',
+        runInDevelopment = false,
+        failBuildOnError = true,
+        versionId = '', // TODO: generate uuid and package it into the build as an env variable
+    }: PluginOptions) {
         this.key = key;
-        this.apiEndpoint = apiEndpoint || 'https://flareapp.io/api/sourcemaps';
-        this.runInDevelopment = runInDevelopment || false;
-        this.failBuildOnError = failBuildOnError || false; // set default to true
+        this.apiEndpoint = apiEndpoint;
+        this.runInDevelopment = runInDevelopment;
+        this.failBuildOnError = failBuildOnError;
+        this.versionId = versionId;
     }
 
     apply(compiler: webpack.Compiler) {
         if (!this.verifyOptions(compiler)) {
             return;
         }
+
+        compiler.hooks.compilation.tap('', compilation => {
+            const gitInfo = getGitInfo();
+            // this.versionId
+
+            // TODO: set git info & versionId in ENV variables (environment might be the incorrect hook, maybe beforeCompile, idk.)
+            // https://github.com/webpack/webpack/blob/master/lib/DefinePlugin.js?source=cc
+        });
 
         compiler.hooks.afterEmit.tapPromise('FlareWebpackPluginSourcemap', compilation => {
             flareLog('Uploading sourcemaps to Flare');

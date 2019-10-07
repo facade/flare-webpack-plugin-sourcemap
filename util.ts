@@ -10,7 +10,7 @@ type GitInfo = {
 
 function clCommand(command: string) {
     try {
-        return execSync(command, { cwd: __dirname, encoding: 'utf8' });
+        return execSync(command, { cwd: __dirname, encoding: 'utf8' }).replace('\n', '');
     } catch (error) {
         return '';
     }

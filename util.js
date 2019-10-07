@@ -3,7 +3,7 @@ exports.__esModule = true;
 var child_process_1 = require("child_process");
 function clCommand(command) {
     try {
-        return child_process_1.execSync(command, { cwd: __dirname, encoding: 'utf8' });
+        return child_process_1.execSync(command, { cwd: __dirname, encoding: 'utf8' }).replace('\n', '');
     }
     catch (error) {
         return '';
