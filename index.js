@@ -1,23 +1,17 @@
 "use strict";
 exports.__esModule = true;
+var zlib = require("zlib");
 var axios_1 = require("axios");
-var zlib = require('zlib');
-function flareLog(message, isError) {
-    if (isError === void 0) { isError = false; }
-    var formattedMessage = 'flare-webpack-plugin-sourcemap: ' + message;
-    if (isError) {
-        console.error('\n' + formattedMessage + '\n');
-        return;
-    }
-    console.log('\n' + formattedMessage + '\n');
-}
+var util_1 = require("./util");
+var gitInfo = util_1.getGitInfo();
+console.log(gitInfo);
 var FlareWebpackPluginSourcemap = /** @class */ (function () {
     function FlareWebpackPluginSourcemap(_a) {
         var key = _a.key, apiEndpoint = _a.apiEndpoint, runInDevelopment = _a.runInDevelopment, failBuildOnError = _a.failBuildOnError;
         this.key = key;
         this.apiEndpoint = apiEndpoint || 'https://flareapp.io/api/sourcemaps';
         this.runInDevelopment = runInDevelopment || false;
-        this.failBuildOnError = failBuildOnError || false;
+        this.failBuildOnError = failBuildOnError || false; // set default to true
     }
     FlareWebpackPluginSourcemap.prototype.apply = function (compiler) {
         var _this = this;
@@ -25,26 +19,26 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
             return;
         }
         compiler.hooks.afterEmit.tapPromise('FlareWebpackPluginSourcemap', function (compilation) {
-            flareLog('Uploading sourcemaps to Flare');
+            util_1.flareLog('Uploading sourcemaps to Flare');
             return _this.sendSourcemaps(compilation)
                 .then(function () {
-                flareLog('Successfully uploaded sourcemaps to Flare.');
+                util_1.flareLog('Successfully uploaded sourcemaps to Flare.');
             })["catch"](function () {
                 var errorMessage = "\n\n---\nSomething went wrong while uploading sourcemaps to Flare.\nErrors may have been outputted above.\n---\n";
                 if (_this.failBuildOnError) {
                     throw new Error(errorMessage);
                 }
-                flareLog(errorMessage, true);
+                util_1.flareLog(errorMessage, true);
             });
         });
     };
     FlareWebpackPluginSourcemap.prototype.verifyOptions = function (compiler) {
         if (!this.key) {
-            flareLog('No Flare project key was provided, not uploading sourcemaps to Flare.', true);
+            util_1.flareLog('No Flare project key was provided, not uploading sourcemaps to Flare.', true);
             return false;
         }
         if (!this.runInDevelopment && compiler.options.mode === 'development') {
-            flareLog('Running webpack in development mode, not uploading sourcemaps to Flare.');
+            util_1.flareLog('Running webpack in development mode, not uploading sourcemaps to Flare.');
             return false;
         }
         return true;
@@ -54,12 +48,12 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             var sourcemaps = _this.getSourcemaps(compilation);
             if (!sourcemaps.length) {
-                flareLog('No sourcemap files were found. Make sure sourcemaps are being generated!', true);
+                util_1.flareLog('No sourcemap files were found. Make sure sourcemaps are being generated!', true);
                 return reject();
             }
             Promise.all(sourcemaps.map(function (sourcemap) { return _this.uploadSourcemap(sourcemap); }))
                 .then(function () { return resolve(); })["catch"](function (err) {
-                flareLog(err, true);
+                util_1.flareLog(err, true);
                 return reject();
             });
         });
@@ -95,7 +89,7 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
                     sourcemap: gzippedSourcemap
                 })
                     .then(function () { return resolve(); })["catch"](function (error) {
-                    flareLog(error.response.status + ": " + error.response.data.message, true);
+                    util_1.flareLog(error.response.status + ": " + error.response.data.message, true);
                     return reject(error);
                 });
             });

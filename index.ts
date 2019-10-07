@@ -1,6 +1,7 @@
 import webpack = require('webpack');
+import zlib = require('zlib');
 import axios, { AxiosError } from 'axios';
-const zlib = require('zlib');
+import { getGitInfo, flareLog } from './util';
 
 type PluginOptions = {
     key: string;
@@ -14,16 +15,8 @@ type Sourcemap = {
     content: string;
 };
 
-function flareLog(message: string, isError: boolean = false) {
-    const formattedMessage = 'flare-webpack-plugin-sourcemap: ' + message;
-
-    if (isError) {
-        console.error('\n' + formattedMessage + '\n');
-        return;
-    }
-
-    console.log('\n' + formattedMessage + '\n');
-}
+const gitInfo = getGitInfo();
+console.log(gitInfo);
 
 class FlareWebpackPluginSourcemap {
     key: PluginOptions['key'];
@@ -35,7 +28,7 @@ class FlareWebpackPluginSourcemap {
         this.key = key;
         this.apiEndpoint = apiEndpoint || 'https://flareapp.io/api/sourcemaps';
         this.runInDevelopment = runInDevelopment || false;
-        this.failBuildOnError = failBuildOnError || false;
+        this.failBuildOnError = failBuildOnError || false; // set default to true
     }
 
     apply(compiler: webpack.Compiler) {

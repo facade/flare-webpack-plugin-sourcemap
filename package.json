@@ -4,7 +4,7 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "watch": "tsc index.ts --w"
+        "watch": "tsc *.ts --w"
     },
     "devDependencies": {
         "@types/webpack": "^4.39.2"
