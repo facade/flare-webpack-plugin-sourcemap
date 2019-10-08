@@ -7,7 +7,6 @@ type PluginOptions = {
     key: string;
     apiEndpoint?: string;
     runInDevelopment: boolean;
-    failBuildOnError: boolean;
     versionId?: string;
 };
 
@@ -20,20 +19,17 @@ class FlareWebpackPluginSourcemap {
     key: PluginOptions['key'];
     apiEndpoint: PluginOptions['apiEndpoint'];
     runInDevelopment: PluginOptions['runInDevelopment'];
-    failBuildOnError: PluginOptions['failBuildOnError'];
     versionId: PluginOptions['versionId'];
 
     constructor({
         key,
         apiEndpoint = 'https://flareapp.io/api/sourcemaps',
         runInDevelopment = false,
-        failBuildOnError = true,
         versionId = '', // TODO: generate uuid and package it into the build as an env variable
     }: PluginOptions) {
         this.key = key;
         this.apiEndpoint = apiEndpoint;
         this.runInDevelopment = runInDevelopment;
-        this.failBuildOnError = failBuildOnError;
         this.versionId = versionId;
     }
 
@@ -57,14 +53,16 @@ class FlareWebpackPluginSourcemap {
                 .then(() => {
                     flareLog('Successfully uploaded sourcemaps to Flare.');
                 })
-                .catch(() => {
-                    const errorMessage = `\n\n---\nSomething went wrong while uploading sourcemaps to Flare.\nErrors may have been outputted above.\n---\n`;
+                .catch(error => {
+                    const errorMessage =
+                        'Something went wrong while uploading sourcemaps to Flare. ' +
+                        'Additional information may have been outputted above.';
 
-                    if (this.failBuildOnError) {
-                        throw new Error(errorMessage);
-                    }
+                    compilation.errors.push(`flare-webpack-plugin-sourcemap: ${error}`);
 
-                    flareLog(errorMessage, true);
+                    compilation.errors.push(`flare-webpack-plugin-sourcemap: ${errorMessage}`);
+
+                    flareLog(errorMessage);
                 });
         });
     }
@@ -95,10 +93,10 @@ class FlareWebpackPluginSourcemap {
 
             Promise.all(sourcemaps.map(sourcemap => this.uploadSourcemap(sourcemap)))
                 .then(() => resolve())
-                .catch(err => {
-                    flareLog(err, true);
+                .catch(error => {
+                    flareLog(error, true);
 
-                    return reject();
+                    return reject(error);
                 });
         });
     }

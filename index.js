@@ -5,11 +5,10 @@ var axios_1 = require("axios");
 var util_1 = require("./util");
 var FlareWebpackPluginSourcemap = /** @class */ (function () {
     function FlareWebpackPluginSourcemap(_a) {
-        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.failBuildOnError, failBuildOnError = _d === void 0 ? true : _d, _e = _a.versionId, versionId = _e === void 0 ? '' : _e;
+        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.versionId, versionId = _d === void 0 ? '' : _d;
         this.key = key;
         this.apiEndpoint = apiEndpoint;
         this.runInDevelopment = runInDevelopment;
-        this.failBuildOnError = failBuildOnError;
         this.versionId = versionId;
     }
     FlareWebpackPluginSourcemap.prototype.apply = function (compiler) {
@@ -29,12 +28,12 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
             return _this.sendSourcemaps(compilation)
                 .then(function () {
                 util_1.flareLog('Successfully uploaded sourcemaps to Flare.');
-            })["catch"](function () {
-                var errorMessage = "\n\n---\nSomething went wrong while uploading sourcemaps to Flare.\nErrors may have been outputted above.\n---\n";
-                if (_this.failBuildOnError) {
-                    throw new Error(errorMessage);
-                }
-                util_1.flareLog(errorMessage, true);
+            })["catch"](function (error) {
+                var errorMessage = 'Something went wrong while uploading sourcemaps to Flare. ' +
+                    'Additional information may have been outputted above.';
+                compilation.errors.push("flare-webpack-plugin-sourcemap: " + error);
+                compilation.errors.push("flare-webpack-plugin-sourcemap: " + errorMessage);
+                util_1.flareLog(errorMessage);
             });
         });
     };
@@ -58,9 +57,9 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
                 return reject();
             }
             Promise.all(sourcemaps.map(function (sourcemap) { return _this.uploadSourcemap(sourcemap); }))
-                .then(function () { return resolve(); })["catch"](function (err) {
-                util_1.flareLog(err, true);
-                return reject();
+                .then(function () { return resolve(); })["catch"](function (error) {
+                util_1.flareLog(error, true);
+                return reject(error);
             });
         });
     };
