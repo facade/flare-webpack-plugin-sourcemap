@@ -59,7 +59,6 @@ class FlareWebpackPluginSourcemap {
                         'Additional information may have been outputted above.';
 
                     compilation.errors.push(`flare-webpack-plugin-sourcemap: ${error}`);
-
                     compilation.errors.push(`flare-webpack-plugin-sourcemap: ${errorMessage}`);
 
                     flareLog(errorMessage);
