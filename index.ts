@@ -42,15 +42,15 @@ class FlareWebpackPluginSourcemap {
             return;
         }
 
-        compiler.hooks.compilation.tap('', compilation => {
+        /* compiler.hooks.compilation.tap('InjectFlareEnvVariables', compilation => {
             const gitInfo = getGitInfo();
             // this.versionId
 
             // TODO: set git info & versionId in ENV variables (environment might be the incorrect hook, maybe beforeCompile, idk.)
             // https://github.com/webpack/webpack/blob/master/lib/DefinePlugin.js?source=cc
-        });
+        }); */
 
-        compiler.hooks.afterEmit.tapPromise('FlareWebpackPluginSourcemap', compilation => {
+        compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {
             flareLog('Uploading sourcemaps to Flare');
 
             return this.sendSourcemaps(compilation)
@@ -126,28 +126,21 @@ class FlareWebpackPluginSourcemap {
 
     uploadSourcemap(sourcemap: Sourcemap): Promise<void> {
         return new Promise((resolve, reject) => {
-            zlib.deflate(sourcemap.content, (error, buffer) => {
-                if (error) {
-                    console.error('Something went wrong while compressing the sourcemap content:');
-                    reject(error);
-                }
+            const base64GzipSourcemap = zlib.deflateRawSync(sourcemap.content).toString('base64');
 
-                const gzippedSourcemap = buffer.toString();
+            axios
+                .post(this.apiEndpoint, {
+                    key: this.key,
+                    version_id: 'test_version',
+                    relative_filename: sourcemap.filename,
+                    sourcemap: base64GzipSourcemap,
+                })
+                .then(() => resolve())
+                .catch((error: AxiosError) => {
+                    flareLog(`${error.response.status}: ${error.response.data.message}`, true);
 
-                axios
-                    .post(this.apiEndpoint, {
-                        key: this.key,
-                        version_id: 'test_version',
-                        relative_filename: sourcemap.filename,
-                        sourcemap: gzippedSourcemap,
-                    })
-                    .then(() => resolve())
-                    .catch((error: AxiosError) => {
-                        flareLog(`${error.response.status}: ${error.response.data.message}`, true);
-
-                        return reject(error);
-                    });
-            });
+                    return reject(error);
+                });
         });
     }
 }
