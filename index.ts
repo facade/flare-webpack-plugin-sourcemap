@@ -1,7 +1,7 @@
 import webpack = require('webpack');
 import zlib = require('zlib');
 import axios, { AxiosError } from 'axios';
-import { getGitInfo, flareLog, uuidv4, setEnvVariablesInBuild } from './util';
+import { getGitInfo, flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
     key: string;
@@ -40,7 +40,7 @@ class FlareWebpackPluginSourcemap {
 
         new webpack.DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO: JSON.stringify(getGitInfo()),
+            FLARE_GIT_INFO: JSON.stringify(getGitInfo(compiler.options.context)),
         }).apply(compiler);
 
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {

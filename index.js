@@ -19,7 +19,7 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
         }
         new webpack.DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO: JSON.stringify(util_1.getGitInfo())
+            FLARE_GIT_INFO: JSON.stringify(util_1.getGitInfo(compiler.options.context))
         }).apply(compiler);
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', function (compilation) {
             util_1.flareLog('Uploading sourcemaps to Flare');

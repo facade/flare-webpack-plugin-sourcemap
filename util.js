@@ -9,19 +9,14 @@ function clCommand(command) {
         return '';
     }
 }
-function getGitInfo() {
-    try {
-        return {
-            hash: clCommand("git log --pretty=format:'%H' -n 1"),
-            message: clCommand("git log --pretty=format:'%s' -n 1"),
-            tag: clCommand('git describe --tags --abbrev=0'),
-            remote: clCommand('git config --get remote.origin.url'),
-            isDirty: !!clCommand('git status -s')
-        };
-    }
-    catch (err) {
-        flareLog('Failed getting git info. Reports will not have git information in their context.', true);
-    }
+function getGitInfo(path) {
+    return {
+        hash: clCommand("git -C " + path + " log --pretty=format:'%H' -n 1"),
+        message: clCommand("git -C " + path + " log --pretty=format:'%s' -n 1"),
+        tag: clCommand("git -C " + path + " describe --tags --abbrev=0"),
+        remote: clCommand("git -C " + path + " config --get remote.origin.url"),
+        isDirty: !!clCommand("git -C " + path + " status -s")
+    };
 }
 exports.getGitInfo = getGitInfo;
 function flareLog(message, isError) {

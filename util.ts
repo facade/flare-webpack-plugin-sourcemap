@@ -17,18 +17,14 @@ function clCommand(command: string) {
     }
 }
 
-export function getGitInfo(): GitInfo {
-    try {
-        return <GitInfo>{
-            hash: clCommand("git log --pretty=format:'%H' -n 1"),
-            message: clCommand("git log --pretty=format:'%s' -n 1"),
-            tag: clCommand('git describe --tags --abbrev=0'),
-            remote: clCommand('git config --get remote.origin.url'),
-            isDirty: !!clCommand('git status -s'),
-        };
-    } catch (err) {
-        flareLog('Failed getting git info. Reports will not have git information in their context.', true);
-    }
+export function getGitInfo(path): GitInfo {
+    return <GitInfo>{
+        hash: clCommand(`git -C ${path} log --pretty=format:'%H' -n 1`),
+        message: clCommand(`git -C ${path} log --pretty=format:'%s' -n 1`),
+        tag: clCommand(`git -C ${path} describe --tags --abbrev=0`),
+        remote: clCommand(`git -C ${path} config --get remote.origin.url`),
+        isDirty: !!clCommand(`git -C ${path} status -s`),
+    };
 }
 
 export function flareLog(message: string, isError: boolean = false) {
