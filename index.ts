@@ -8,6 +8,7 @@ type PluginOptions = {
     apiEndpoint?: string;
     runInDevelopment?: boolean;
     versionId?: string;
+    addGitInfo?: boolean;
 };
 
 type Sourcemap = {
@@ -20,17 +21,20 @@ class FlareWebpackPluginSourcemap {
     apiEndpoint: PluginOptions['apiEndpoint'];
     runInDevelopment: PluginOptions['runInDevelopment'];
     versionId: PluginOptions['versionId'];
+    addGitInfo: PluginOptions['addGitInfo'];
 
     constructor({
         key,
         apiEndpoint = 'https://flareapp.io/api/sourcemaps',
         runInDevelopment = false,
         versionId = uuidv4(),
+        addGitInfo = false,
     }: PluginOptions) {
         this.key = key;
         this.apiEndpoint = apiEndpoint;
         this.runInDevelopment = runInDevelopment;
         this.versionId = versionId;
+        this.addGitInfo = addGitInfo;
     }
 
     apply(compiler: webpack.Compiler) {
@@ -40,7 +44,7 @@ class FlareWebpackPluginSourcemap {
 
         new webpack.DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO: JSON.stringify(getGitInfo(compiler.options.context)),
+            FLARE_GIT_INFO: this.addGitInfo ? JSON.stringify(getGitInfo(compiler.options.context)) : {},
         }).apply(compiler);
 
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {

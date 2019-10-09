@@ -6,11 +6,12 @@ var axios_1 = require("axios");
 var util_1 = require("./util");
 var FlareWebpackPluginSourcemap = /** @class */ (function () {
     function FlareWebpackPluginSourcemap(_a) {
-        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.versionId, versionId = _d === void 0 ? util_1.uuidv4() : _d;
+        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.versionId, versionId = _d === void 0 ? util_1.uuidv4() : _d, _e = _a.addGitInfo, addGitInfo = _e === void 0 ? false : _e;
         this.key = key;
         this.apiEndpoint = apiEndpoint;
         this.runInDevelopment = runInDevelopment;
         this.versionId = versionId;
+        this.addGitInfo = addGitInfo;
     }
     FlareWebpackPluginSourcemap.prototype.apply = function (compiler) {
         var _this = this;
@@ -19,7 +20,7 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
         }
         new webpack.DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO: JSON.stringify(util_1.getGitInfo(compiler.options.context))
+            FLARE_GIT_INFO: this.addGitInfo ? JSON.stringify(util_1.getGitInfo(compiler.options.context)) : {}
         }).apply(compiler);
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', function (compilation) {
             util_1.flareLog('Uploading sourcemaps to Flare');
