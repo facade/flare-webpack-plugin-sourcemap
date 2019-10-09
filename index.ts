@@ -1,12 +1,12 @@
 import webpack = require('webpack');
 import zlib = require('zlib');
 import axios, { AxiosError } from 'axios';
-import { getGitInfo, flareLog } from './util';
+import { getGitInfo, flareLog, uuidv4, setEnvVariablesInBuild } from './util';
 
 type PluginOptions = {
     key: string;
     apiEndpoint?: string;
-    runInDevelopment: boolean;
+    runInDevelopment?: boolean;
     versionId?: string;
 };
 
@@ -25,7 +25,7 @@ class FlareWebpackPluginSourcemap {
         key,
         apiEndpoint = 'https://flareapp.io/api/sourcemaps',
         runInDevelopment = false,
-        versionId = '', // TODO: generate uuid and package it into the build as an env variable
+        versionId = uuidv4(),
     }: PluginOptions) {
         this.key = key;
         this.apiEndpoint = apiEndpoint;
@@ -38,13 +38,10 @@ class FlareWebpackPluginSourcemap {
             return;
         }
 
-        /* compiler.hooks.compilation.tap('InjectFlareEnvVariables', compilation => {
-            const gitInfo = getGitInfo();
-            // this.versionId
-
-            // TODO: set git info & versionId in ENV variables (environment might be the incorrect hook, maybe beforeCompile, idk.)
-            // https://github.com/webpack/webpack/blob/master/lib/DefinePlugin.js?source=cc
-        }); */
+        new webpack.DefinePlugin({
+            FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
+            FLARE_GIT_INFO: JSON.stringify(getGitInfo()),
+        }).apply(compiler);
 
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {
             flareLog('Uploading sourcemaps to Flare');
@@ -128,7 +125,7 @@ class FlareWebpackPluginSourcemap {
             axios
                 .post(this.apiEndpoint, {
                     key: this.key,
-                    version_id: 'test_version',
+                    version_id: this.versionId,
                     relative_filename: sourcemap.filename,
                     sourcemap: base64GzipSourcemap,
                 })

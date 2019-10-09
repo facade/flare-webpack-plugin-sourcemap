@@ -1,11 +1,12 @@
 "use strict";
 exports.__esModule = true;
+var webpack = require("webpack");
 var zlib = require("zlib");
 var axios_1 = require("axios");
 var util_1 = require("./util");
 var FlareWebpackPluginSourcemap = /** @class */ (function () {
     function FlareWebpackPluginSourcemap(_a) {
-        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.versionId, versionId = _d === void 0 ? '' : _d;
+        var key = _a.key, _b = _a.apiEndpoint, apiEndpoint = _b === void 0 ? 'https://flareapp.io/api/sourcemaps' : _b, _c = _a.runInDevelopment, runInDevelopment = _c === void 0 ? false : _c, _d = _a.versionId, versionId = _d === void 0 ? util_1.uuidv4() : _d;
         this.key = key;
         this.apiEndpoint = apiEndpoint;
         this.runInDevelopment = runInDevelopment;
@@ -16,13 +17,10 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
         if (!this.verifyOptions(compiler)) {
             return;
         }
-        /* compiler.hooks.compilation.tap('InjectFlareEnvVariables', compilation => {
-            const gitInfo = getGitInfo();
-            // this.versionId
-
-            // TODO: set git info & versionId in ENV variables (environment might be the incorrect hook, maybe beforeCompile, idk.)
-            // https://github.com/webpack/webpack/blob/master/lib/DefinePlugin.js?source=cc
-        }); */
+        new webpack.DefinePlugin({
+            FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
+            FLARE_GIT_INFO: JSON.stringify(util_1.getGitInfo())
+        }).apply(compiler);
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', function (compilation) {
             util_1.flareLog('Uploading sourcemaps to Flare');
             return _this.sendSourcemaps(compilation)
@@ -84,7 +82,7 @@ var FlareWebpackPluginSourcemap = /** @class */ (function () {
             axios_1["default"]
                 .post(_this.apiEndpoint, {
                 key: _this.key,
-                version_id: 'test_version',
+                version_id: _this.versionId,
                 relative_filename: sourcemap.filename,
                 sourcemap: base64GzipSourcemap
             })
