@@ -1,14 +1,14 @@
-import webpack = require('webpack');
-import zlib = require('zlib');
+import webpack from 'webpack';
+import zlib from 'zlib';
 import axios, { AxiosError } from 'axios';
 import { getGitInfo, flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
     key: string;
-    apiEndpoint?: string;
-    runInDevelopment?: boolean;
-    versionId?: string;
-    collectGitInformation?: boolean;
+    apiEndpoint: string;
+    runInDevelopment: boolean;
+    versionId: string;
+    collectGitInformation: boolean;
 };
 
 type Sourcemap = {
@@ -44,7 +44,10 @@ class FlareWebpackPluginSourcemap {
 
         new webpack.DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO: this.collectGitInformation ? JSON.stringify(getGitInfo(compiler.options.context)) : {},
+            FLARE_GIT_INFO:
+                this.collectGitInformation && compiler.options.context
+                    ? JSON.stringify(getGitInfo(compiler.options.context))
+                    : {},
         }).apply(compiler);
 
         compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {
@@ -67,7 +70,7 @@ class FlareWebpackPluginSourcemap {
         });
     }
 
-    verifyOptions(compiler): boolean {
+    verifyOptions(compiler: webpack.Compiler): boolean {
         if (!this.key) {
             flareLog('No Flare project key was provided, not uploading sourcemaps to Flare.', true);
             return false;
@@ -102,24 +105,27 @@ class FlareWebpackPluginSourcemap {
     }
 
     getSourcemaps(compilation: webpack.compilation.Compilation): Array<Sourcemap> {
-        return compilation
-            .getStats()
-            .toJson()
-            .chunks.reduce(
-                (sourcemaps, currentChunk) => {
-                    const filename = currentChunk.files.find(file => /\.js$/.test(file));
-                    const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
+        const chunks = compilation.getStats().toJson().chunks;
 
-                    if (filename && sourcemapUrl) {
-                        const content = compilation.assets[sourcemapUrl].source();
+        if (!chunks) {
+            return [];
+        }
 
-                        sourcemaps = [...sourcemaps, { filename, content }];
-                    }
+        return chunks.reduce(
+            (sourcemaps, currentChunk) => {
+                const filename = currentChunk.files.find(file => /\.js$/.test(file));
+                const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
 
-                    return sourcemaps;
-                },
-                [] as Array<Sourcemap>
-            );
+                if (filename && sourcemapUrl) {
+                    const content = compilation.assets[sourcemapUrl].source();
+
+                    sourcemaps = [...sourcemaps, { filename, content }];
+                }
+
+                return sourcemaps;
+            },
+            [] as Array<Sourcemap>
+        );
     }
 
     uploadSourcemap(sourcemap: Sourcemap): Promise<void> {
@@ -135,6 +141,10 @@ class FlareWebpackPluginSourcemap {
                 })
                 .then(() => resolve())
                 .catch((error: AxiosError) => {
+                    if (!error || !error.response) {
+                        return reject('Something went wrong while uploading the sourcemaps to Flare.');
+                    }
+
                     flareLog(`${error.response.status}: ${error.response.data.message}`, true);
 
                     return reject(error);

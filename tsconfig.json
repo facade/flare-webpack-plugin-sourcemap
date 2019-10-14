@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "lib": ["es2017"],
+        "module": "amd",
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "preserveConstEnums": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "esnext",
+        "outFile": "dist/index.js"
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+}

@@ -1,5 +1,4 @@
 import { execSync } from 'child_process';
-import webpack = require('webpack');
 
 type GitInfo = {
     hash: string;
@@ -17,7 +16,7 @@ function clCommand(command: string) {
     }
 }
 
-export function getGitInfo(path): GitInfo {
+export function getGitInfo(path: string): GitInfo {
     return <GitInfo>{
         hash: clCommand(`git -C ${path} log --pretty=format:'%H' -n 1`),
         message: clCommand(`git -C ${path} log --pretty=format:'%s' -n 1`),
