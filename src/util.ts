@@ -27,7 +27,7 @@ export function getGitInfo(path: string): GitInfo {
 }
 
 export function flareLog(message: string, isError: boolean = false) {
-    const formattedMessage = 'flare-webpack-plugin-sourcemap: ' + message;
+    const formattedMessage = '@flareapp/flare-webpack-plugin-sourcemap: ' + message;
 
     if (isError) {
         console.error('\n' + formattedMessage + '\n');

@@ -2,7 +2,7 @@
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "lib": ["es2017"],
-        "module": "amd",
+        "module": "umd",
         "moduleResolution": "node",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
@@ -10,7 +10,7 @@
         "skipLibCheck": true,
         "strict": true,
         "target": "esnext",
-        "outFile": "dist/index.js"
+        "outDir": "dist"
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules"]

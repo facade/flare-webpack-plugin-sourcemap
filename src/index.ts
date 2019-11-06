@@ -62,8 +62,8 @@ class FlareWebpackPluginSourcemap {
                         'Something went wrong while uploading sourcemaps to Flare. ' +
                         'Additional information may have been outputted above.';
 
-                    compilation.errors.push(`flare-webpack-plugin-sourcemap: ${error}`);
-                    compilation.errors.push(`flare-webpack-plugin-sourcemap: ${errorMessage}`);
+                    compilation.errors.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error}`);
+                    compilation.errors.push(`@flareapp/flare-webpack-plugin-sourcemap: ${errorMessage}`);
 
                     flareLog(errorMessage);
                 });
