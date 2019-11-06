@@ -30,11 +30,11 @@ export function flareLog(message: string, isError: boolean = false) {
     const formattedMessage = '@flareapp/flare-webpack-plugin-sourcemap: ' + message;
 
     if (isError) {
-        console.error('\n' + formattedMessage + '\n');
+        console.error(formattedMessage);
         return;
     }
 
-    console.log('\n' + formattedMessage + '\n');
+    console.log(formattedMessage);
 }
 
 export function uuidv4() {

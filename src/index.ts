@@ -1,6 +1,7 @@
-import webpack from 'webpack';
-import zlib from 'zlib';
-import axios, { AxiosError } from 'axios';
+import { Compiler, DefinePlugin, compilation } from 'webpack';
+import { deflateRawSync } from 'zlib';
+import { AxiosError } from 'axios';
+import * as axios from 'axios';
 import { getGitInfo, flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
@@ -37,12 +38,12 @@ class FlareWebpackPluginSourcemap {
         this.collectGitInformation = collectGitInformation;
     }
 
-    apply(compiler: webpack.Compiler) {
+    apply(compiler: Compiler) {
         if (!this.verifyOptions(compiler)) {
             return;
         }
 
-        new webpack.DefinePlugin({
+        new DefinePlugin({
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
             FLARE_GIT_INFO:
                 this.collectGitInformation && compiler.options.context
@@ -70,7 +71,7 @@ class FlareWebpackPluginSourcemap {
         });
     }
 
-    verifyOptions(compiler: webpack.Compiler): boolean {
+    verifyOptions(compiler: Compiler): boolean {
         if (!this.key) {
             flareLog('No Flare project key was provided, not uploading sourcemaps to Flare.', true);
             return false;
@@ -84,7 +85,7 @@ class FlareWebpackPluginSourcemap {
         return true;
     }
 
-    sendSourcemaps(compilation: webpack.compilation.Compilation): Promise<void> {
+    sendSourcemaps(compilation: compilation.Compilation): Promise<void> {
         return new Promise((resolve, reject) => {
             const sourcemaps = this.getSourcemaps(compilation);
 
@@ -104,7 +105,7 @@ class FlareWebpackPluginSourcemap {
         });
     }
 
-    getSourcemaps(compilation: webpack.compilation.Compilation): Array<Sourcemap> {
+    getSourcemaps(compilation: compilation.Compilation): Array<Sourcemap> {
         const chunks = compilation.getStats().toJson().chunks;
 
         if (!chunks) {
@@ -130,8 +131,18 @@ class FlareWebpackPluginSourcemap {
 
     uploadSourcemap(sourcemap: Sourcemap): Promise<void> {
         return new Promise((resolve, reject) => {
-            const base64GzipSourcemap = zlib.deflateRawSync(sourcemap.content).toString('base64');
+            const base64GzipSourcemap = deflateRawSync(sourcemap.content).toString('base64');
 
+            console.log(this.apiEndpoint, {
+                key: this.key,
+                version_id: this.versionId,
+                relative_filename: sourcemap.filename,
+                sourcemap: base64GzipSourcemap,
+            });
+
+            throw new Error('kek');
+
+            // ts error: https://github.com/axios/axios/issues/1975
             axios
                 .post(this.apiEndpoint, {
                     key: this.key,
@@ -146,6 +157,7 @@ class FlareWebpackPluginSourcemap {
                     }
 
                     flareLog(`${error.response.status}: ${error.response.data.message}`, true);
+                    console.error(error.response);
 
                     return reject(error);
                 });
