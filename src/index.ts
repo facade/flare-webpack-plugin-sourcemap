@@ -140,8 +140,6 @@ class FlareWebpackPluginSourcemap {
                 sourcemap: base64GzipSourcemap,
             });
 
-            throw new Error('kek');
-
             // ts error: https://github.com/axios/axios/issues/1975
             axios
                 .post(this.apiEndpoint, {
