@@ -1,10 +1,11 @@
 {
-    "name": "flare-webpack-plugin-sourcemap",
-    "version": "0.1",
+    "name": "@flareapp/flare-webpack-plugin-sourcemap",
+    "version": "0.0.2",
     "main": "dist/index.js",
     "license": "MIT",
     "scripts": {
-        "watch": "tsc --w"
+        "watch": "tsc --w -noEmit",
+        "build": "tsc"
     },
     "devDependencies": {
         "@types/webpack": "^4.39.2"
@@ -12,5 +13,8 @@
     "dependencies": {
         "axios": "^0.19.0",
         "webpack": "^4.41.0"
+    },
+    "publishConfig": {
+        "access": "public"
     }
 }
