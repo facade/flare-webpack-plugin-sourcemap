@@ -133,13 +133,6 @@ class FlareWebpackPluginSourcemap {
         return new Promise((resolve, reject) => {
             const base64GzipSourcemap = deflateRawSync(sourcemap.content).toString('base64');
 
-            console.log(this.apiEndpoint, {
-                key: this.key,
-                version_id: this.versionId,
-                relative_filename: sourcemap.filename,
-                sourcemap: base64GzipSourcemap,
-            });
-
             // ts error: https://github.com/axios/axios/issues/1975
             axios
                 .post(this.apiEndpoint, {
