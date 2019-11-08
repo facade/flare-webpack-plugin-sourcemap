@@ -146,8 +146,12 @@ class FlareWebpackPluginSourcemap {
                         return reject('Something went wrong while uploading the sourcemaps to Flare.');
                     }
 
-                    flareLog(`${error.response.status}: ${error.response.data.message}`, true);
-                    console.error(error.response);
+                    flareLog(
+                        `${error.response.status}: ${error.response.data.message}, ${JSON.stringify(
+                            error.response.data.errors
+                        )}`,
+                        true
+                    );
 
                     return reject(error);
                 });
