@@ -1,7 +1,7 @@
 import { Compiler, DefinePlugin, compilation } from 'webpack';
 import { deflateRawSync } from 'zlib';
 import { AxiosError } from 'axios';
-import * as axios from 'axios';
+const { default: axios } = require('axios'); // Temporary replacement for `import * as axios from 'axios';` while https://github.com/axios/axios/issues/1975 isn't in a release
 import { getGitInfo, flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
@@ -133,7 +133,6 @@ class FlareWebpackPluginSourcemap {
         return new Promise((resolve, reject) => {
             const base64GzipSourcemap = deflateRawSync(sourcemap.content).toString('base64');
 
-            // ts error: https://github.com/axios/axios/issues/1975
             axios
                 .post(this.apiEndpoint, {
                     key: this.key,
