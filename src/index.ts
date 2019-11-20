@@ -2,7 +2,7 @@ import { Compiler, DefinePlugin, compilation } from 'webpack';
 import { deflateRawSync } from 'zlib';
 import { AxiosError } from 'axios';
 const { default: axios } = require('axios'); // Temporary replacement for `import * as axios from 'axios';` while https://github.com/axios/axios/issues/1975 isn't in a release
-import { getGitInfo, flareLog, uuidv4 } from './util';
+import { flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
     key: string;
@@ -44,12 +44,8 @@ class FlareWebpackPluginSourcemap {
         }
 
         new DefinePlugin({
-            FLARE_JS_KEY: this.key,
+            FLARE_JS_KEY: JSON.stringify(this.key),
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
-            FLARE_GIT_INFO:
-                this.collectGitInformation && compiler.options.context
-                    ? JSON.stringify(getGitInfo(compiler.options.context))
-                    : {},
         }).apply(compiler);
 
         const plugin = (compilation: compilation.Compilation) => {
