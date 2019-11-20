@@ -51,7 +51,7 @@ class FlareWebpackPluginSourcemap {
                     : {},
         }).apply(compiler);
 
-        compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', compilation => {
+        const plugin = (compilation: compilation.Compilation) => {
             flareLog('Uploading sourcemaps to Flare');
 
             return this.sendSourcemaps(compilation)
@@ -68,7 +68,16 @@ class FlareWebpackPluginSourcemap {
 
                     flareLog(errorMessage);
                 });
-        });
+        };
+
+        if (!compiler.hooks) {
+            // webpack 3
+            compiler.plugin('after-emit', plugin);
+            return
+        }
+
+        // webpack >4
+        compiler.hooks.afterEmit.tapPromise('GetSourcemapsAndUploadToFlare', plugin);
     }
 
     verifyOptions(compiler: Compiler): boolean {
@@ -112,21 +121,18 @@ class FlareWebpackPluginSourcemap {
             return [];
         }
 
-        return chunks.reduce(
-            (sourcemaps, currentChunk) => {
-                const filename = currentChunk.files.find(file => /\.js$/.test(file));
-                const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
+        return chunks.reduce((sourcemaps, currentChunk) => {
+            const filename = currentChunk.files.find(file => /\.js$/.test(file));
+            const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
 
-                if (filename && sourcemapUrl) {
-                    const content = compilation.assets[sourcemapUrl].source();
+            if (filename && sourcemapUrl) {
+                const content = compilation.assets[sourcemapUrl].source();
 
-                    sourcemaps = [...sourcemaps, { filename, content }];
-                }
+                sourcemaps = [...sourcemaps, { filename, content }];
+            }
 
-                return sourcemaps;
-            },
-            [] as Array<Sourcemap>
-        );
+            return sourcemaps;
+        }, [] as Array<Sourcemap>);
     }
 
     uploadSourcemap(sourcemap: Sourcemap): Promise<void> {
