@@ -44,6 +44,7 @@ class FlareWebpackPluginSourcemap {
         }
 
         new DefinePlugin({
+            FLARE_JS_KEY: this.key,
             FLARE_SOURCEMAP_VERSION: JSON.stringify(this.versionId),
             FLARE_GIT_INFO:
                 this.collectGitInformation && compiler.options.context
