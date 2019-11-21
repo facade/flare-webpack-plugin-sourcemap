@@ -6,10 +6,10 @@ import { flareLog, uuidv4 } from './util';
 
 type PluginOptions = {
     key: string;
-    apiEndpoint: string;
-    runInDevelopment: boolean;
-    versionId: string;
-    collectGitInformation: boolean;
+    apiEndpoint?: string;
+    runInDevelopment?: boolean;
+    versionId?: string;
+    collectGitInformation?: boolean;
 };
 
 type Sourcemap = {
@@ -17,7 +17,7 @@ type Sourcemap = {
     content: string;
 };
 
-class FlareWebpackPluginSourcemap {
+export default class FlareWebpackPlugin {
     key: PluginOptions['key'];
     apiEndpoint: PluginOptions['apiEndpoint'];
     runInDevelopment: PluginOptions['runInDevelopment'];
@@ -164,5 +164,3 @@ class FlareWebpackPluginSourcemap {
         });
     }
 }
-
-module.exports = FlareWebpackPluginSourcemap;
