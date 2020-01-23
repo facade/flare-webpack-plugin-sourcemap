@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "lib": ["es2017"],
+        "module": "umd",
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "preserveConstEnums": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "target": "es5",
+        "outDir": "dist"
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+}
