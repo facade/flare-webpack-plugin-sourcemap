@@ -16,3 +16,9 @@ export function uuidv4() {
         return v.toString(16);
     });
 }
+
+export function removeQuery(url: string) {
+    const queryStringIndex = url.indexOf('?');
+
+    return queryStringIndex < 0 ? url : url.substr(0, queryStringIndex);
+}

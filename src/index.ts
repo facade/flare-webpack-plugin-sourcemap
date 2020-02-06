@@ -1,8 +1,9 @@
 import { Compiler, DefinePlugin, compilation } from 'webpack';
 import { deflateRawSync } from 'zlib';
 import { AxiosError } from 'axios';
+import fs = require('fs');
 const { default: axios } = require('axios'); // Temporary replacement for `import * as axios from 'axios';` while https://github.com/axios/axios/issues/1975 isn't in a release
-import { flareLog, uuidv4 } from './util';
+import { flareLog, uuidv4, removeQuery } from './util';
 
 type PluginOptions = {
     key: string;
@@ -103,6 +104,8 @@ class FlareWebpackPluginSourcemap {
 
     getSourcemaps(compilation: compilation.Compilation): Array<Sourcemap> {
         const chunks = compilation.getStats().toJson().chunks;
+        const compiler = compilation.compiler;
+        const outputPath = compilation.getPath(compiler.outputPath, {});
 
         if (!chunks) {
             return [];
@@ -113,9 +116,14 @@ class FlareWebpackPluginSourcemap {
             const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
 
             if (filename && sourcemapUrl) {
-                const content = compilation.assets[sourcemapUrl].source();
+                const sourcemapLocation = outputPath + removeQuery(sourcemapUrl);
 
-                sourcemaps = [...sourcemaps, { filename, content }];
+                try {
+                    const content = fs.readFileSync(sourcemapLocation, 'utf8');
+                    sourcemaps = [...sourcemaps, { filename: removeQuery(filename), content }];
+                } catch (error) {
+                    console.error('Error reading sourcemap file', sourcemapLocation, ': ', error);
+                }
             }
 
             return sourcemaps;
