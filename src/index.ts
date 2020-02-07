@@ -105,7 +105,12 @@ class FlareWebpackPluginSourcemap {
     getSourcemaps(compilation: compilation.Compilation): Array<Sourcemap> {
         const chunks = compilation.getStats().toJson().chunks;
         const compiler = compilation.compiler;
-        const outputPath = compilation.getPath(compiler.outputPath, {});
+        let outputPath = compilation.getPath(compiler.outputPath, {});
+
+        // add trailing slash to outputPath
+        if (outputPath.charAt(outputPath.length - 1) !== '/') {
+            outputPath += '/';
+        }
 
         if (!chunks) {
             return [];
