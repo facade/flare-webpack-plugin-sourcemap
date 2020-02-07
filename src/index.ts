@@ -105,12 +105,7 @@ class FlareWebpackPluginSourcemap {
     getSourcemaps(compilation: compilation.Compilation): Array<Sourcemap> {
         const chunks = compilation.getStats().toJson().chunks;
         const compiler = compilation.compiler;
-        let outputPath = compilation.getPath(compiler.outputPath, {});
-
-        // add trailing slash to outputPath
-        if (outputPath.charAt(outputPath.length - 1) !== '/') {
-            outputPath += '/';
-        }
+        const outputPath = compilation.getPath(compiler.outputPath, {});
 
         if (!chunks) {
             return [];
@@ -121,7 +116,7 @@ class FlareWebpackPluginSourcemap {
             const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
 
             if (filename && sourcemapUrl) {
-                const sourcemapLocation = outputPath + removeQuery(sourcemapUrl);
+                const sourcemapLocation = removeQuery(compiler.outputFileSystem.join(outputPath, sourcemapUrl));
 
                 try {
                     const content = fs.readFileSync(sourcemapLocation, 'utf8');
