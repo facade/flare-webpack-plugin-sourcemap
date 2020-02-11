@@ -112,8 +112,8 @@ class FlareWebpackPluginSourcemap {
         }
 
         return chunks.reduce((sourcemaps, currentChunk) => {
-            const filename = currentChunk.files.find(file => /\.js$/.test(file));
-            const sourcemapUrl = currentChunk.files.find(file => /\.js\.map$/.test(file));
+            const filename = currentChunk.files.find(file => /\.js/.test(file));
+            const sourcemapUrl = currentChunk.files.find(file => /\.js\.map/.test(file));
 
             if (filename && sourcemapUrl) {
                 const sourcemapLocation = removeQuery(compiler.outputFileSystem.join(outputPath, sourcemapUrl));
@@ -144,15 +144,17 @@ class FlareWebpackPluginSourcemap {
                 .then(() => resolve())
                 .catch((error: AxiosError) => {
                     if (!error || !error.response) {
-                        return reject('Something went wrong while uploading the sourcemaps to Flare.');
+                        return reject('An unknown error occurred while uploading the sourcemaps to Flare.');
                     }
 
-                    flareLog(
-                        `${error.response.status}: ${error.response.data.message}, ${JSON.stringify(
-                            error.response.data.errors
-                        )}`,
-                        true
-                    );
+                    if (error.response.status && error.response.data.message && error.response.data.errors) {
+                        flareLog(
+                            `${error.response.status}: ${error.response.data.message}, ${JSON.stringify(
+                                error.response.data.errors
+                            )}`,
+                            true
+                        );
+                    }
 
                     return reject(error);
                 });
