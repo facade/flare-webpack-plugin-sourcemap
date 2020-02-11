@@ -43,7 +43,7 @@ class FlareWebpackPluginSourcemap {
 
         const plugin = (compilation: compilation.Compilation) => {
             if (!this.verifyOptions(compiler, compilation)) {
-                return Promise.reject();
+                return;
             }
 
             flareLog('Uploading sourcemaps to Flare');
@@ -73,7 +73,7 @@ class FlareWebpackPluginSourcemap {
             return false;
         }
 
-        if (!this.runInDevelopment && compiler.options.mode === 'development') {
+        if (!this.runInDevelopment && compiler.options.mode === 'development' || process.env.NODE_ENV === 'development') {
             flareLog('Running webpack in development mode, not uploading sourcemaps to Flare.');
             return false;
         }
