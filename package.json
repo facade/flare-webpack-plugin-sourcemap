@@ -5,7 +5,8 @@
     "license": "MIT",
     "scripts": {
         "watch": "tsc --w -noEmit",
-        "build": "tsc"
+        "build": "tsc",
+        "prepublishOnly": "$npm_execpath build"
     },
     "devDependencies": {
         "@types/webpack": "^4.0.0",
