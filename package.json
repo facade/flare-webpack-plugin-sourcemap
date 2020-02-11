@@ -1,6 +1,6 @@
 {
     "name": "@flareapp/flare-webpack-plugin-sourcemap",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "main": "dist",
     "license": "MIT",
     "scripts": {
