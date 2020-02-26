@@ -1,10 +1,11 @@
 {
     "name": "@flareapp/flare-webpack-plugin-sourcemap",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "main": "dist",
     "license": "MIT",
     "scripts": {
         "watch": "tsc --w -noEmit",
+        "watch-build": "tsc --w",
         "build": "tsc",
         "prepublishOnly": "$npm_execpath build"
     },

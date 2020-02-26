@@ -43,12 +43,13 @@ class FlareWebpackPluginSourcemap {
 
         const isWebpack3 = !compiler.hooks;
 
-        const plugin = (compilation: compilation.Compilation) => {
+        const plugin = (compilation: compilation.Compilation, cb: () => void) => {
             if (!this.verifyOptions(compiler, compilation)) {
                 if (isWebpack3) {
-                    return;
+                    return cb();
                 }
 
+                cb();
                 return Promise.reject();
             }
 
@@ -57,15 +58,16 @@ class FlareWebpackPluginSourcemap {
             return this.sendSourcemaps(compilation)
                 .then(() => {
                     flareLog('Successfully uploaded sourcemaps to Flare.');
+                    cb();
                 })
                 .catch((error: string) => {
                     compilation.warnings.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error}`);
+                    cb();
                 });
         };
 
         if (isWebpack3) {
-            compiler.plugin('after-emit', plugin);
-            return;
+            return compiler.plugin('after-emit', plugin);
         }
 
         // webpack >=4
@@ -79,8 +81,8 @@ class FlareWebpackPluginSourcemap {
         }
 
         if (
-            (!this.runInDevelopment && compiler.options.mode === 'development') ||
-            process.env.NODE_ENV === 'development'
+            !this.runInDevelopment &&
+            (compiler.options.mode === 'development' || process.env.NODE_ENV === 'development')
         ) {
             flareLog('Running webpack in development mode, not uploading sourcemaps to Flare.');
             return false;
