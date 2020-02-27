@@ -43,7 +43,8 @@ class FlareWebpackPluginSourcemap {
 
         const isWebpack3 = !compiler.hooks;
 
-        const plugin = (compilation: compilation.Compilation, cb: () => void) => {
+        // callback cb needed for webpack 3 support
+        const plugin = (compilation: compilation.Compilation, cb: () => void = () => {}) => {
             if (!this.verifyOptions(compiler, compilation)) {
                 if (isWebpack3) {
                     return cb();
