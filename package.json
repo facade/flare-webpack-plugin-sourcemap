@@ -9,6 +9,13 @@
         "build": "tsc",
         "prepublishOnly": "$npm_execpath build"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/facade/flare-webpack-plugin-sourcemap.git"
+    },
+    "bugs": {
+        "url": "https://github.com/facade/flare-webpack-plugin-sourcemap/issues"
+    },
     "devDependencies": {
         "@types/webpack": "^4.0.0",
         "webpack": "^4.0.0"
