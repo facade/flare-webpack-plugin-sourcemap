@@ -62,7 +62,7 @@ class FlareWebpackPluginSourcemap {
                     cb();
                 })
                 .catch((error: Error) => {
-                    compilation.warnings.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error.message} ${error}`);
+                    compilation.warnings.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error.message}`);
                     cb();
                 });
         };
