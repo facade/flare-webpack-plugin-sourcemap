@@ -61,8 +61,8 @@ class FlareWebpackPluginSourcemap {
                     flareLog('Successfully uploaded sourcemaps to Flare.');
                     cb();
                 })
-                .catch((error: string) => {
-                    compilation.warnings.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error}`);
+                .catch((error: Error) => {
+                    compilation.warnings.push(`@flareapp/flare-webpack-plugin-sourcemap: ${error.message} ${error}`);
                     cb();
                 });
         };
@@ -109,7 +109,7 @@ class FlareWebpackPluginSourcemap {
 
             Promise.all(sourcemaps.map(sourcemap => this.uploadSourcemap(sourcemap)))
                 .then(() => resolve())
-                .catch((error: Error) => reject(error.message));
+                .catch((error: Error) => reject(error));
         });
     }
 
