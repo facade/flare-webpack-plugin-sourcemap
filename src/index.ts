@@ -111,7 +111,7 @@ class FlareWebpackPluginSourcemap {
     sendSourcemaps(compilation: compilation.Compilation): Promise<void> {
         flareLog('Uploading sourcemaps to Flare');
 
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const sourcemaps = this.getSourcemaps(compilation);
 
             if (!sourcemaps.length) {
@@ -120,23 +120,25 @@ class FlareWebpackPluginSourcemap {
                 );
             }
 
-            Promise.all(sourcemaps.map((sourcemap) => this.uploadSourcemap(sourcemap)))
-                .then(() => {
-                    flareLog('Successfully uploaded sourcemaps to Flare.');
+            flareLog(`Uploading ${sourcemaps.length} sourcemap files to Flare.`);
 
-                    if (this.removeSourcemaps) {
-                        this.removeAllSourcemaps();
-                    }
+            const funcs = sourcemaps.map((sourcemap) => () => this.uploadSourcemap(sourcemap));
 
-                    resolve();
-                })
-                .catch((error: Error) => {
-                    if (this.removeSourcemaps) {
-                        this.removeAllSourcemaps();
-                    }
+            try {
+                while (funcs.length) {
+                    // max 10 at once https://stackoverflow.com/a/58686835
+                    await Promise.all(funcs.splice(0, 10).map((f) => f()));
+                }
 
-                    reject(error);
-                });
+                resolve();
+            } catch (error) {
+                flareLog(`Something went wrong while uploading the sourcemaps to Flare: ${error}`, true);
+                reject(error);
+            }
+
+            if (this.removeSourcemaps) {
+                this.removeAllSourcemaps();
+            }
         });
     }
 
