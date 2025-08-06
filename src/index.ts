@@ -1,8 +1,7 @@
 import { Compiler, DefinePlugin, compilation } from 'webpack';
 import { deflateRawSync } from 'zlib';
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import fs = require('fs');
-const { default: axios } = require('axios'); // Temporary replacement for `import * as axios from 'axios';` while https://github.com/axios/axios/issues/1975 isn't in a release
 import { flareLog, uuidv4, removeQuery } from './util';
 import path = require('path');
 
