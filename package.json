@@ -4,6 +4,7 @@
     "main": "dist",
     "license": "MIT",
     "scripts": {
+        "tsc": "tsc",
         "watch": "$npm_execpath run tsc --w -noEmit",
         "watch-build": "$npm_execpath run tsc --w",
         "build": "$npm_execpath run tsc",
