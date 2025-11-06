@@ -19,6 +19,11 @@ type Sourcemap = {
     content: string;
 };
 
+type FlareErrorResponse = {
+    message: string;
+    errors: Record<string, unknown>;
+};
+
 class FlareWebpackPluginSourcemap {
     key: PluginOptions['key'];
     apiEndpoint: PluginOptions['apiEndpoint'];
@@ -186,15 +191,16 @@ class FlareWebpackPluginSourcemap {
                     sourcemap: base64GzipSourcemap,
                 })
                 .then(() => resolve())
-                .catch((error: AxiosError) => {
+                .catch((error: AxiosError<FlareErrorResponse>) => {
                     if (!error || !error.response) {
                         return reject('An unknown error occurred while uploading the sourcemaps to Flare.');
                     }
 
-                    if (error.response.status && error.response.data.message && error.response.data.errors) {
+                    const responseData = error.response.data;
+                    if (error.response.status && responseData && responseData.message && responseData.errors) {
                         flareLog(
-                            `${error.response.status}: ${error.response.data.message}, ${JSON.stringify(
-                                error.response.data.errors
+                            `${error.response.status}: ${responseData.message}, ${JSON.stringify(
+                                responseData.errors
                             )}`,
                             true
                         );
